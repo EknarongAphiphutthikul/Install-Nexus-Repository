@@ -65,8 +65,52 @@
   sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
   sudo reboot
   ```
+
+- Install Docker  
+  https://github.com/EknarongAphiphutthikul/Install-Docker
+
+- Install Local Persist Volume Plugin  
+  - https://unix.stackexchange.com/questions/439106/docker-create-a-persistent-volume-in-a-specific-directory  
+  - https://github.com/MatchbookLab/local-persist  
+  - https://stackoverflow.com/questions/63227362/docker-volumes-create-options-driver
+  ```sh
+  curl -fsSL https://raw.githubusercontent.com/MatchbookLab/local-persist/master/scripts/install.sh | sudo bash
+  ```
+- Create Volume
+  ```sh
+  mkdir -p /home/akeadm/nexus/data
+
+  docker volume create -d local-persist --opt mountpoint=/home/akeadm/nexus/data --name nexus-data-volume
+  ```
 ----
 
 <br/>
 
 ## Install Sonatype Nexus Repository
+- Command
+  ```sh
+  docker run -d --restart unless-stopped -p 8081:8081 --name nexus -v nexus-data-volume:/nexus-data sonatype/nexus3:3.31.1
+
+  docker ps
+  ```
+
+- Console
+  ```console
+  CONTAINER ID   IMAGE                    COMMAND                  CREATED          STATUS          PORTS                                       NAMES
+  a319c71c09fe   sonatype/nexus3:3.31.1   "sh -c ${SONATYPE_DI…"   58 seconds ago   Up 57 seconds   0.0.0.0:8081->8081/tcp, :::8081->8081/tcp   nexus
+  ```
+
+- Enable firewall
+  ```sh
+  sudo ufw allow 8081/tcp
+  sudo ufw reload
+  sudo ufw status
+  ```
+
+- Accessing the User Interface  
+  http://nexus.ake.com:8081/
+
+- Administrator password
+  ```sh
+   docker exec nexus  more /nexus-data/admin.password
+  ```
